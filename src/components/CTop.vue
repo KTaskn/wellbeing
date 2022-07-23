@@ -105,7 +105,8 @@ export default Vue.extend({
         label: "",
         required_time: undefined,
         required_cost: undefined,
-        happiness: undefined,
+        wellbeing_long: undefined,
+        wellbeing_short: undefined
       });
     },
     load_solver: function () {
@@ -120,22 +121,60 @@ export default Vue.extend({
       this.calc_dea();
     },
     calc_dea: function () {
-      let model = {
-        optimize: "y",
-        opType: "max",
-        constraints: {
-          x: { equal: 1.0 },
-          y: { max: "x" },
+      this.actions.map((ent, idx) => {
+        let variables = Object.assign(
+            this.dea_vars_u(this.actions, idx),
+            this.dea_vars_v(this.actions, idx)
+          )
+        console.log(variables)
+        let model = {
+          optimize: "target",
+          opType: "max",
+          constraints: {
+            st_1: { equal: 1.0 },
+            st_2: { max: 0.0 },
+          },
+          variables: variables
+        };
+        const results = this.solver?.Solve(model);
+        console.log(results);
+      })
+    },
+    dea_vars_u: function(actions: Array<Action>, target) {
+      // u_short: {sum_y_val: 0.0, target_y_val: 0.0}
+      // u_long: {sum_y_val: 0.0, target_y_val: 0.0}
+      return {
+        u_short: {
+          st_2: actions.map(
+              (ent: Action): number => ent.wellbeing_short as number
+            ).reduce((result:number, ent: number) => result + ent),
+          target: actions[target].wellbeing_short
         },
-        variables: {
-          a: {x: 1, y: 2},
-          b: {x: 2, y: 3},
-          c: {x: 3, y: 4},
-          d: {x: 4},
+        u_long: {
+          st_2: actions.map(
+              (ent: Action): number => ent.wellbeing_long as number
+            ).reduce((result:number, ent: number) => result + ent),
+          target: actions[target].wellbeing_long
+        }
+      }
+    },
+    dea_vars_v: function(actions: Array<Action>, target) {
+      // v_cost: {sum_x: 0.0, target_x: 0.0}
+      // v_time: {sum_x: 0.0, target_x: 0.0}
+      return {
+        v_cost: {
+          st_2: actions.map(
+            (ent: Action): number => ent.required_cost as number
+          ).reduce((result:number, ent: number) => result + ent),
+          st_1: actions[target].required_cost
         },
-      };
-      const results = this.solver?.Solve(model);
-      console.log(results);
+        v_time: {
+          st_2: -actions.map(
+            (ent: Action): number => ent.required_time as number
+          ).reduce((result:number, ent: number) => result + ent),
+          st_1: actions[target].required_time
+        },
+      }
     },
     actions_obj: function () {
       return this.actions.reduce(function (

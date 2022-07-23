@@ -3,5 +3,6 @@ export default interface Action {
     label: string
     required_time?: number
     required_cost?: number
-    happiness?: number
+    wellbeing_long?: number
+    wellbeing_short?: number
 }
