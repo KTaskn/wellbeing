@@ -16,8 +16,8 @@
             <thead>
               <tr>
                 <th class="text-left">行動</th>
-                <th class="text-left">必要経費</th>
                 <th class="text-left">消費時間</th>
+                <th class="text-left">必要経費</th>
                 <th class="text-left">幸福度</th>
               </tr>
             </thead>
@@ -35,7 +35,7 @@
                   <v-form ref="form">
                     <v-text-field
                       v-model="ent.required_time"
-                      label="必要経費"
+                      label="消費時間"
                     ></v-text-field>
                   </v-form>
                 </td>
@@ -43,7 +43,7 @@
                   <v-form ref="form">
                     <v-text-field
                       v-model="ent.required_cost"
-                      label="必要時間"
+                      label="必要経費"
                     ></v-text-field>
                   </v-form>
                 </td>
@@ -77,6 +77,7 @@ interface Data {
   actions: Array<Action>;
   budget: number;
   holiday: number;
+  solver: (() => {}) | undefined;
 }
 
 export default Vue.extend({
@@ -84,12 +85,14 @@ export default Vue.extend({
   props: {},
   mounted: function () {
     this.actions = actions;
+    this.load_solver()
   },
   data: function (): Data {
     return {
       actions: [],
       budget: 300000,
       holiday: 800,
+      solver: undefined,
     };
   },
   methods: {
@@ -105,45 +108,48 @@ export default Vue.extend({
         happiness: undefined,
       });
     },
-    call: function () {
-      let fuga: string = "123";
-      console.log(fuga);
+    load_solver: function () {
       loadScript("https://unpkg.com/javascript-lp-solver/prod/solver.js")
         .then(() => {
-          const actions_obj: any = this.actions.reduce(function (
-            result: Object,
-            val: Action
-          ) {
-            result[val.id] = val;
-            return result;
-          },
-          {});
-          const ints: any = this.actions.reduce(function (
-            result: Object,
-            val: Action
-          ) {
-            result[val.id] = 1;
-            return result;
-          },
-          {});
-
-          console.log(actions_obj);
-          console.log(ints);
-
-          let model = {
-            optimize: "happiness",
-            opType: "max",
-            constraints: {
-              required_cost: { max: this.budget },
-              required_time: { max: this.holiday },
-            },
-            variables: actions_obj,
-            ints: ints,
-          };
-          const results = solver.Solve(model);
-          console.log(results);
+          console.log("load")
+          this.solver = solver;
         })
         .catch(() => console.log("err"));
+    },
+    call: function () {
+      this.calc();
+    },
+    calc_dea: function () {},
+    calc: function () {
+      const actions_obj: any = this.actions.reduce(function (
+        result: Object,
+        val: Action
+      ) {
+        result[val.id] = val;
+        return result;
+      },
+      {});
+      const ints: any = this.actions.reduce(function (
+        result: Object,
+        val: Action
+      ) {
+        result[val.id] = 1;
+        return result;
+      },
+      {});
+
+      let model = {
+        optimize: "happiness",
+        opType: "max",
+        constraints: {
+          required_cost: { max: this.budget },
+          required_time: { max: this.holiday },
+        },
+        variables: actions_obj,
+        ints: ints,
+      };
+      const results = this.solver?.Solve(model);
+      console.log(results);
     },
   },
 });
