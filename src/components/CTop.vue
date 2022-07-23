@@ -117,11 +117,28 @@ export default Vue.extend({
         .catch(() => console.log("err"));
     },
     call: function () {
-      this.calc();
+      this.calc_dea();
     },
-    calc_dea: function () {},
-    calc: function () {
-      const actions_obj: any = this.actions.reduce(function (
+    calc_dea: function () {
+      let model = {
+        optimize: "y",
+        opType: "max",
+        constraints: {
+          x: { equal: 1.0 },
+          y: { max: "x" },
+        },
+        variables: {
+          a: {x: 1, y: 2},
+          b: {x: 2, y: 3},
+          c: {x: 3, y: 4},
+          d: {x: 4},
+        },
+      };
+      const results = this.solver?.Solve(model);
+      console.log(results);
+    },
+    actions_obj: function () {
+      return this.actions.reduce(function (
         result: Object,
         val: Action
       ) {
@@ -129,15 +146,18 @@ export default Vue.extend({
         return result;
       },
       {});
-      const ints: any = this.actions.reduce(function (
+    },
+    ints: function () {
+      return this.actions.reduce(function (
         result: Object,
         val: Action
       ) {
         result[val.id] = 1;
         return result;
       },
-      {});
-
+      {})
+    },
+    calc: function () {
       let model = {
         optimize: "happiness",
         opType: "max",
@@ -145,8 +165,8 @@ export default Vue.extend({
           required_cost: { max: this.budget },
           required_time: { max: this.holiday },
         },
-        variables: actions_obj,
-        ints: ints,
+        variables: this.actions_obj(),
+        ints: this.ints(),
       };
       const results = this.solver?.Solve(model);
       console.log(results);
