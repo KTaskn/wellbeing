@@ -1,58 +1,70 @@
 <template>
-    <v-container class="grey lighten-5">
-      <h1>Hello world</h1>
-      <v-btn @click="call">calc</v-btn>
-      <v-row class="mb-6" justify="center" no-gutters>
-        <v-col>
-          <v-simple-table>
-            <template v-slot:default>
-              <thead>
-                <tr>
-                  <th class="text-left">行動</th>
-                  <th class="text-left">必要経費</th>
-                  <th class="text-left">消費時間</th>
-                  <th class="text-left">幸福度</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="ent in actions" :key="ent.label">
-                  <td>
-                    <v-form ref="form">
-                      <v-text-field v-model="ent.label"></v-text-field>
-                    </v-form>
-                  </td>
-                  <td>
-                    <v-form ref="form">
-                      <v-text-field v-model="ent.required_time"></v-text-field>
-                    </v-form>
-                  </td>
-                  <td>
-                    <v-form ref="form">
-                      <v-text-field v-model="ent.required_cost"></v-text-field>
-                    </v-form>
-                  </td>
-                  <td>
-                    <v-form ref="form">
-                      <v-text-field v-model="ent.happiness"></v-text-field>
-                    </v-form>
-                  </td>
-                </tr>
-              </tbody>
-            </template>
-          </v-simple-table>
-        <v-btn
-              class="mx-2"
-              fab
-              dark
-              color="indigo"
-            >
-              <v-icon dark>
-                mdi-plus
-              </v-icon>
-            </v-btn>
-        </v-col>
-      </v-row>
-    </v-container>
+  <v-container class="grey lighten-5">
+    <h1>Hello world</h1>
+
+    <v-form ref="form">
+      <v-text-field v-model="budget" label="予算"></v-text-field>
+    </v-form>
+    <v-form ref="form">
+      <v-text-field v-model="holiday" label="休暇"></v-text-field>
+    </v-form>
+    <v-btn @click="call">calc</v-btn>
+    <v-row class="mb-6" justify="center" no-gutters>
+      <v-col>
+        <v-simple-table>
+          <template v-slot:default>
+            <thead>
+              <tr>
+                <th class="text-left">行動</th>
+                <th class="text-left">必要経費</th>
+                <th class="text-left">消費時間</th>
+                <th class="text-left">幸福度</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="ent in actions" :key="ent.id">
+                <td>
+                  <v-form ref="form">
+                    <v-text-field
+                      v-model="ent.label"
+                      label="行動"
+                    ></v-text-field>
+                  </v-form>
+                </td>
+                <td>
+                  <v-form ref="form">
+                    <v-text-field
+                      v-model="ent.required_time"
+                      label="必要経費"
+                    ></v-text-field>
+                  </v-form>
+                </td>
+                <td>
+                  <v-form ref="form">
+                    <v-text-field
+                      v-model="ent.required_cost"
+                      label="必要時間"
+                    ></v-text-field>
+                  </v-form>
+                </td>
+                <td>
+                  <v-form ref="form">
+                    <v-text-field
+                      v-model="ent.happiness"
+                      label="幸福度"
+                    ></v-text-field>
+                  </v-form>
+                </td>
+              </tr>
+            </tbody>
+          </template>
+        </v-simple-table>
+        <v-btn @click="addRow" class="mx-2" fab dark color="indigo">
+          <v-icon dark> mdi-plus </v-icon>
+        </v-btn>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script lang="ts">
@@ -63,6 +75,8 @@ import { loadScript } from "vue-plugin-load-script";
 
 interface Data {
   actions: Array<Action>;
+  budget: number;
+  holiday: number;
 }
 
 export default Vue.extend({
@@ -74,37 +88,57 @@ export default Vue.extend({
   data: function (): Data {
     return {
       actions: [],
+      budget: 300000,
+      holiday: 800,
     };
   },
   methods: {
+    addRow: function () {
+      let tailId: number = this.actions
+        .map((ent): number => ent.id)
+        .reduce((a, b) => (a > b ? a : b));
+      this.actions.push({
+        id: tailId + 1,
+        label: "",
+        required_time: undefined,
+        required_cost: undefined,
+        happiness: undefined,
+      });
+    },
     call: function () {
       let fuga: string = "123";
       console.log(fuga);
       loadScript("https://unpkg.com/javascript-lp-solver/prod/solver.js")
         .then(() => {
-          console.log("ok");
-          var model = {
-            optimize: "capacity",
+          const actions_obj: any = this.actions.reduce(function (
+            result: Object,
+            val: Action
+          ) {
+            result[val.id] = val;
+            return result;
+          },
+          {});
+          const ints: any = this.actions.reduce(function (
+            result: Object,
+            val: Action
+          ) {
+            result[val.id] = 1;
+            return result;
+          },
+          {});
+
+          console.log(actions_obj);
+          console.log(ints);
+
+          let model = {
+            optimize: "happiness",
             opType: "max",
             constraints: {
-              plane: { max: 44 },
-              person: { max: 512 },
-              cost: { max: 300000 },
+              required_cost: { max: this.budget },
+              required_time: { max: this.holiday },
             },
-            variables: {
-              brit: {
-                capacity: 20000,
-                plane: 1,
-                person: 8,
-                cost: 5000,
-              },
-              yank: {
-                capacity: 30000,
-                plane: 1,
-                person: 16,
-                cost: 9000,
-              },
-            },
+            variables: actions_obj,
+            ints: ints,
           };
           const results = solver.Solve(model);
           console.log(results);
