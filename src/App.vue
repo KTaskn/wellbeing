@@ -1,35 +1,24 @@
 <template>
-  <div id="app">
-    <c-top />
-  </div>
+  <v-app>
+    <v-main>
+      <CTop />
+    </v-main>
+  </v-app>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import Vuetify from 'vuetify'
-// eslint-disable-next-line
-import CTop from './components/CTop.vue'
-import 'vuetify/dist/vuetify.min.css'
-import '@mdi/font/css/materialdesignicons.css'
-
-
-Vue.use(Vuetify)
+import CTop from './components/CTop.vue';
 
 export default Vue.extend({
   name: 'App',
+
   components: {
-    CTop
+    CTop,
   },
+
+  data: () => ({
+    //
+  }),
 });
 </script>
-
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>

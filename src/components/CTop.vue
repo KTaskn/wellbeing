@@ -1,9 +1,7 @@
 <template>
-  <div>
-    <h1>Hello world</h1>
-    <v-btn @click="call">calc</v-btn>
-
     <v-container class="grey lighten-5">
+      <h1>Hello world</h1>
+      <v-btn @click="call">calc</v-btn>
       <v-row class="mb-6" justify="center" no-gutters>
         <v-col>
           <v-simple-table>
@@ -42,12 +40,19 @@
               </tbody>
             </template>
           </v-simple-table>
-
-          <v-icon> mdi-plus </v-icon>
+        <v-btn
+              class="mx-2"
+              fab
+              dark
+              color="indigo"
+            >
+              <v-icon dark>
+                mdi-plus
+              </v-icon>
+            </v-btn>
         </v-col>
       </v-row>
     </v-container>
-  </div>
 </template>
 
 <script lang="ts">
