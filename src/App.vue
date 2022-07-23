@@ -1,19 +1,25 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
+    <c-top />
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import HelloWorld from './components/HelloWorld.vue';
+import Vuetify from 'vuetify'
+// eslint-disable-next-line
+import CTop from './components/CTop.vue'
+import 'vuetify/dist/vuetify.min.css'
+import '@mdi/font/css/materialdesignicons.css'
+
+
+Vue.use(Vuetify)
 
 export default Vue.extend({
   name: 'App',
   components: {
-    HelloWorld
-  }
+    CTop
+  },
 });
 </script>
 
