@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog">
+  <v-dialog v-model="dialog" max-width="300px">
     <v-card>
       <v-card-title>
         <span class="text-h5">休暇時間を入力しよう</span>
@@ -7,8 +7,8 @@
       <v-card-text>
         <v-container>
           <v-row>
-            <v-col cols="12" sm="8" md="8">
-              <v-text-field v-model="holiday" :rules="[isInteger]" label="時間(日)" required></v-text-field>
+            <v-col>
+              <v-text-field v-model="holiday" :rules="[isInteger]" label="休暇時間(hour)" required></v-text-field>
             </v-col>
           </v-row>
         </v-container>
@@ -18,7 +18,12 @@
         <v-btn
             color="blue darken-1"
             text
-            @click="dialog = false; $emit('holiday', holiday)"
+            @click="() => {
+              if (isInteger(holiday)) {
+                dialog = false
+                $emit('holiday', holiday)
+              }
+            }"
           >
             OK
         </v-btn>

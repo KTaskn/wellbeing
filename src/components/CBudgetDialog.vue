@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog">
+  <v-dialog v-model="dialog" max-width="300px">
     <v-card>
       <v-card-title>
         <span class="text-h5">予算を入力しよう</span>
@@ -7,7 +7,7 @@
       <v-card-text>
         <v-container>
           <v-row>
-            <v-col cols="12" sm="8" md="8">
+            <v-col>
               <v-text-field v-model="budget" label="予算(円)" :rules="[isInteger]" required></v-text-field>
             </v-col>
           </v-row>
@@ -18,7 +18,12 @@
         <v-btn
             color="blue darken-1"
             text
-            @click="dialog = false; $emit('budget', budget)"
+            @click="() => {
+              if (isInteger(budget)) {
+                dialog = false
+                $emit('budget', budget)
+              }
+            }"
           >
             OK
         </v-btn>

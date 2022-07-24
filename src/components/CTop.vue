@@ -7,10 +7,30 @@
       openHolidayDialog(val)
     }"/>
     <c-holiday-dialog :pDialog="flagHolidayDialog" @holiday="setHoliday"/>
+    <c-result-dialog :pDialog="flagResultDialog" 
+      :positiveResult="positiveResult" 
+      :negativeResult="negativeResult"
+      @setPDialog="() => {flagResultDialog = false}"
+      />
 
-    <v-text-field v-model="budget" label="予算"></v-text-field>
-    <v-text-field v-model="holiday" label="休暇"></v-text-field>
-    <v-btn @click="call">calc</v-btn>
+
+    <v-overlay :value="inCalculation">
+      <h1>計算中...</h1>
+      <v-progress-circular
+        indeterminate
+        color="primary"
+      ></v-progress-circular>
+    </v-overlay>
+
+
+    <v-text-field v-model="budget" label="予算（円）"></v-text-field>
+    <v-text-field v-model="holiday" label="休暇時間（hour）"></v-text-field>
+
+    <v-btn @click="setTemplate">テンプレートを使う</v-btn>
+    <v-btn @click="initList">リストを初期化する</v-btn>
+    <v-btn @click="call">計算する</v-btn>
+
+
     <v-row class="mb-6" justify="center" no-gutters>
       <v-col>
         <v-simple-table>
@@ -18,10 +38,10 @@
             <thead>
               <tr>
                 <th class="text-left">行動</th>
-                <th class="text-left">消費時間</th>
-                <th class="text-left">必要経費</th>
-                <th class="text-left">短期的幸福度</th>
-                <th class="text-left">長期的幸福度</th>
+                <th class="text-left">消費時間（hour）</th>
+                <th class="text-left">必要経費（円）</th>
+                <th class="text-left">短期的幸福度（継続時間 hour）</th>
+                <th class="text-left">長期的幸福度（継続時間 月）</th>
               </tr>
             </thead>
             <tbody>
@@ -35,28 +55,28 @@
                 <td>
                   <v-text-field
                     v-model="ent.required_time"
-                    label="消費時間"
+                    label="消費時間（hour）"
                     :rules="[isNumber]"
                   ></v-text-field>
                 </td>
                 <td>
                   <v-text-field
                     v-model="ent.required_cost"
-                    label="必要経費"
+                    label="必要経費（円）"
                     :rules="[isNumber]"
                   ></v-text-field>
                 </td>
                 <td>
                   <v-text-field
                     v-model="ent.wellbeing_short"
-                    label="短期的幸福度"
+                    label="短期的幸福度（継続時間 hour）"
                     :rules="[isNumber]"
                   ></v-text-field>
                 </td>
                 <td>
                   <v-text-field
                     v-model="ent.wellbeing_long"
-                    label="長期的幸福度"
+                    label="長期的幸福度（継続時間 月）"
                     :rules="[isNumber]"
                   ></v-text-field>
                 </td>
@@ -75,43 +95,67 @@
 <script lang="ts">
 import Vue from "vue";
 import Action from "../interfaces/action";
-import actions from "../data/actions";
+import templateActions from "../data/actions";
 import { loadScript } from "vue-plugin-load-script";
 
 import CBudgetDialog from './CBudgetDialog.vue'
 import CHolidayDialog from "./CHolidayDialog.vue";
+import CResultDialog from "./CResultDialog.vue";
 
 interface Data {
   flagBudgetDialog: Boolean;
   flagHolidayDialog: Boolean;
+  flagResultDialog: Boolean;
   actions: Array<Action>;
   budget: number;
   holiday: number;
   solver: (() => {}) | undefined;
+  inCalculation: Boolean;
+  positiveResult: Object;
+  negativeResult: Object;
 }
 
 export default Vue.extend({
   name: "CTop",
   components: {
     CBudgetDialog,
-    CHolidayDialog
+    CHolidayDialog,
+    CResultDialog
   },
   props: {},
   mounted: function () {
-    this.actions = actions;
+    this.initList()
     this.load_solver()
   },
   data: function (): Data {
     return {
       flagBudgetDialog: true,
       flagHolidayDialog: false,
+      flagResultDialog: false,
       actions: [],
-      budget: 300000,
-      holiday: 800,
+      budget: 100000,
+      holiday: 96,
       solver: undefined,
+      inCalculation: false,
+      positiveResult: undefined,
+      negativeResult: undefined,
     };
   },
   methods: {
+    setTemplate: function () {
+      this.actions = templateActions;
+    },
+    initList: function () {
+      const sample: Action = {
+        id: 1,
+        label: "喫茶店でコーヒーを飲む",
+        required_cost: 600,
+        required_time: 1.0,
+        wellbeing_short: 1.0,
+        wellbeing_long: 1.0
+      }
+      this.actions = [sample];
+    },
     openHolidayDialog: function () {
       console.log("openHolidayDialog")
       this.flagHolidayDialog = true
@@ -146,8 +190,13 @@ export default Vue.extend({
         .catch(() => console.log("err"));
     },
     call: function () {
-      this.calc(this.calc_dea_positive(this.actions));
-      this.calc(this.calc_dea_negative(this.actions));
+      this.inCalculation = true
+      setTimeout(() => {
+        this.positiveResult = this.calc(this.calc_dea_positive(this.actions))
+        this.negativeResult = this.calc(this.calc_dea_negative(this.actions))
+        this.flagResultDialog = true
+        this.inCalculation = false
+      }, 3000)
     },
     calc_dea_negative: function (actions: Array<Action>): Array<Action> {
       const results = actions.map((ent, idx): Action => {
@@ -201,14 +250,14 @@ export default Vue.extend({
               (ent: Action): number => ent.wellbeing_short as number
             ).reduce((result:number, ent: number) => result + ent),
           target: actions[target].wellbeing_short,
-          st_3: actions[10].wellbeing_short,
+          st_3: actions[0].wellbeing_short,
         },
         u_long: {
           st_2: actions.map(
               (ent: Action): number => ent.wellbeing_long as number
             ).reduce((result:number, ent: number) => result + ent),
           target: actions[target].wellbeing_long,
-          st_3: actions[10].wellbeing_long,
+          st_3: actions[0].wellbeing_long,
         }
       }
     },
@@ -286,13 +335,17 @@ export default Vue.extend({
         }
       };
       const results = this.solver?.Solve(model);
-      console.log(results)
-      Object.keys(results).map(function (key) {
+      const ret = Object.keys(results).reduce(function (result, key) {
         if (key in variables) {
           let k: number = key
-          console.log(k, variables[k].label, results[key])
+          result[k] = {
+              label: variables[k].label,
+              times: results[key]
+            }
         }
-      })
+        return result
+      }, {})
+      return ret
     },
     isNumber: function(val) {
       const pattern = /^[-]?([1-9]\d*|0)(\.\d+)?$/;
