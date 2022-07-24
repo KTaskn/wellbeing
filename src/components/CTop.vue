@@ -127,16 +127,15 @@ export default Vue.extend({
         .catch(() => console.log("err"));
     },
     call: function () {
-      // this.calc_dea_positive();
-      this.calc_dea_negative();
+      this.calc(this.calc_dea_positive(this.actions));
+      this.calc(this.calc_dea_negative(this.actions));
     },
-    calc_dea_negative: function () {
-      this.actions.map((ent, idx) => {
+    calc_dea_negative: function (actions: Array<Action>): Array<Action> {
+      const results = actions.map((ent, idx): Action => {
         let variables = Object.assign(
-            this.dea_vars_u(this.actions, idx),
-            this.dea_vars_v(this.actions, idx)
+            this.dea_vars_u(actions, idx),
+            this.dea_vars_v(actions, idx)
           )
-        console.log(variables)
         let model = {
           optimize: "target",
           opType: "min",
@@ -148,16 +147,17 @@ export default Vue.extend({
           variables: variables
         };
         const results = this.solver?.Solve(model);
-        console.log(results);
+        ent.score = results.result
+        return ent
       })
+      return results
     },
-    calc_dea_positive: function () {
-      this.actions.map((ent, idx) => {
+    calc_dea_positive: function (actions: Array<Action>): Array<Action> {
+      const results = actions.map((ent, idx): Action => {
         let variables = Object.assign(
-            this.dea_vars_u(this.actions, idx),
-            this.dea_vars_v(this.actions, idx)
+            this.dea_vars_u(actions, idx),
+            this.dea_vars_v(actions, idx)
           )
-        console.log(variables)
         let model = {
           optimize: "target",
           opType: "max",
@@ -168,8 +168,10 @@ export default Vue.extend({
           variables: variables
         };
         const results = this.solver?.Solve(model);
-        console.log(results);
+        ent.score = results.result
+        return ent
       })
+      return results
     },
     dea_vars_u: function(actions: Array<Action>, target) {
       // u_short: {sum_y_val: 0.0, target_y_val: 0.0}
@@ -209,18 +211,25 @@ export default Vue.extend({
         },
       }
     },
-    actions_obj: function () {
-      return this.actions.reduce(function (
+    actions_obj: function (acts: Array<Action>) {
+      return acts.reduce((
         result: Object,
         val: Action
-      ) {
-        result[val.id] = val;
+      ) => {
+        result[val.id] = {
+          label: val.label,
+          score: val.score,
+          required_cost: val.required_cost,
+          required_time: val.required_time,
+        }
+        // 最大時間制限
+        result[val.id]["max_" + val.id] = val.required_time
         return result;
       },
       {});
     },
-    ints: function () {
-      return this.actions.reduce(function (
+    ints: function (actions: Array<Action>) {
+      return actions.reduce(function (
         result: Object,
         val: Action
       ) {
@@ -229,19 +238,39 @@ export default Vue.extend({
       },
       {})
     },
-    calc: function () {
+    calc: function (actions: Array<Action>) {
+      console.log(actions.map((ent) => ent.score))
+      const variables = this.actions_obj(actions)
+      const constraints = Object.assign({
+          required_cost: { max: this.budget, min: this.budget * 0.9 },
+          required_time: { equal: this.holiday },
+        }, // 時間の制限
+        actions.reduce((result, ent) => {
+          result["max_" + ent.id] = {
+            max: this.holiday / 10.0
+          }
+          return result
+        }, {})
+      )
+      const ints = this.ints(actions)
+      console.log(variables)
+      console.log(constraints)
+      console.log(ints)
       let model = {
-        optimize: "happiness",
+        optimize: "score",
         opType: "max",
-        constraints: {
-          required_cost: { max: this.budget },
-          required_time: { max: this.holiday },
-        },
-        variables: this.actions_obj(),
-        ints: this.ints(),
+        constraints: constraints,
+        variables: variables,
+        ints: ints,
       };
       const results = this.solver?.Solve(model);
-      console.log(results);
+      console.log(results)
+      Object.keys(results).map(function (key) {
+        if (key in variables) {
+          let k: number = key
+          console.log(k, variables[k].label, results[key])
+        }
+      })
     },
   },
 });
