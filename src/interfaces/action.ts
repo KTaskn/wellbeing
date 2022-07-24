@@ -5,4 +5,5 @@ export default interface Action {
     required_cost?: number
     wellbeing_long?: number
     wellbeing_short?: number
+    score?: number
 }

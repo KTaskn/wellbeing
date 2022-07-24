@@ -190,7 +190,7 @@ const actions: Array<Action> = [
         id: 24,
         label: "本を買う",
         required_cost: 1200,
-        required_time: 0.0,
+        required_time: 0.1,
         wellbeing_short: 1.0,
         wellbeing_long: 1.0
     },
@@ -222,7 +222,7 @@ const actions: Array<Action> = [
         id: 28,
         label: "服を買う",
         required_cost: 2500,
-        required_time: 0.0,
+        required_time: 0.1,
         wellbeing_short: 0.0,
         wellbeing_long: 0.0
     },
@@ -270,7 +270,7 @@ const actions: Array<Action> = [
         id: 34,
         label: "ガジェットを買う",
         required_cost: 20000,
-        required_time: 0.0,
+        required_time: 0.1,
         wellbeing_short: 24.0,
         wellbeing_long: 3.0
     },
@@ -294,7 +294,7 @@ const actions: Array<Action> = [
         id: 37,
         label: "パソコンを買い替える",
         required_cost: 150000,
-        required_time: 0.0,
+        required_time: 0.1,
         wellbeing_short: 24.0,
         wellbeing_long: 3.0
     },

@@ -262,6 +262,9 @@ export default Vue.extend({
         constraints: constraints,
         variables: variables,
         ints: ints,
+        options: {
+            timeout: 10000
+        }
       };
       const results = this.solver?.Solve(model);
       console.log(results)
