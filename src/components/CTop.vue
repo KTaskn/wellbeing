@@ -18,7 +18,8 @@
                 <th class="text-left">行動</th>
                 <th class="text-left">消費時間</th>
                 <th class="text-left">必要経費</th>
-                <th class="text-left">幸福度</th>
+                <th class="text-left">短期的幸福度</th>
+                <th class="text-left">長期的幸福度</th>
               </tr>
             </thead>
             <tbody>
@@ -50,8 +51,16 @@
                 <td>
                   <v-form ref="form">
                     <v-text-field
-                      v-model="ent.happiness"
-                      label="幸福度"
+                      v-model="ent.wellbeing_short"
+                      label="短期的幸福度"
+                    ></v-text-field>
+                  </v-form>
+                </td>
+                <td>
+                  <v-form ref="form">
+                    <v-text-field
+                      v-model="ent.wellbeing_long"
+                      label="長期的幸福度"
                     ></v-text-field>
                   </v-form>
                 </td>
@@ -118,9 +127,31 @@ export default Vue.extend({
         .catch(() => console.log("err"));
     },
     call: function () {
-      this.calc_dea();
+      // this.calc_dea_positive();
+      this.calc_dea_negative();
     },
-    calc_dea: function () {
+    calc_dea_negative: function () {
+      this.actions.map((ent, idx) => {
+        let variables = Object.assign(
+            this.dea_vars_u(this.actions, idx),
+            this.dea_vars_v(this.actions, idx)
+          )
+        console.log(variables)
+        let model = {
+          optimize: "target",
+          opType: "min",
+          constraints: {
+            st_1: { equal: 1.0 },
+            st_2: { max: 0.0 },
+            st_3: { equal: 1.0 },
+          },
+          variables: variables
+        };
+        const results = this.solver?.Solve(model);
+        console.log(results);
+      })
+    },
+    calc_dea_positive: function () {
       this.actions.map((ent, idx) => {
         let variables = Object.assign(
             this.dea_vars_u(this.actions, idx),
@@ -148,13 +179,15 @@ export default Vue.extend({
           st_2: actions.map(
               (ent: Action): number => ent.wellbeing_short as number
             ).reduce((result:number, ent: number) => result + ent),
-          target: actions[target].wellbeing_short
+          target: actions[target].wellbeing_short,
+          st_3: actions[10].wellbeing_short,
         },
         u_long: {
           st_2: actions.map(
               (ent: Action): number => ent.wellbeing_long as number
             ).reduce((result:number, ent: number) => result + ent),
-          target: actions[target].wellbeing_long
+          target: actions[target].wellbeing_long,
+          st_3: actions[10].wellbeing_long,
         }
       }
     },
