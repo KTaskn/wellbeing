@@ -1,13 +1,15 @@
 <template>
   <v-container class="grey lighten-5">
-    <h1>Hello world</h1>
+    <h1>We should maximize wellbeing!</h1>
 
-    <v-form ref="form">
-      <v-text-field v-model="budget" label="予算"></v-text-field>
-    </v-form>
-    <v-form ref="form">
-      <v-text-field v-model="holiday" label="休暇"></v-text-field>
-    </v-form>
+    <c-budget-dialog :pDialog="flagBudgetDialog" @budget="(val) => {
+      setBudget(val)
+      openHolidayDialog(val)
+    }"/>
+    <c-holiday-dialog :pDialog="flagHolidayDialog" @holiday="setHoliday"/>
+
+    <v-text-field v-model="budget" label="予算"></v-text-field>
+    <v-text-field v-model="holiday" label="休暇"></v-text-field>
     <v-btn @click="call">calc</v-btn>
     <v-row class="mb-6" justify="center" no-gutters>
       <v-col>
@@ -25,44 +27,38 @@
             <tbody>
               <tr v-for="ent in actions" :key="ent.id">
                 <td>
-                  <v-form ref="form">
-                    <v-text-field
-                      v-model="ent.label"
-                      label="行動"
-                    ></v-text-field>
-                  </v-form>
+                  <v-text-field
+                    v-model="ent.label"
+                    label="行動"
+                  ></v-text-field>
                 </td>
                 <td>
-                  <v-form ref="form">
-                    <v-text-field
-                      v-model="ent.required_time"
-                      label="消費時間"
-                    ></v-text-field>
-                  </v-form>
+                  <v-text-field
+                    v-model="ent.required_time"
+                    label="消費時間"
+                    :rules="[isNumber]"
+                  ></v-text-field>
                 </td>
                 <td>
-                  <v-form ref="form">
-                    <v-text-field
-                      v-model="ent.required_cost"
-                      label="必要経費"
-                    ></v-text-field>
-                  </v-form>
+                  <v-text-field
+                    v-model="ent.required_cost"
+                    label="必要経費"
+                    :rules="[isNumber]"
+                  ></v-text-field>
                 </td>
                 <td>
-                  <v-form ref="form">
-                    <v-text-field
-                      v-model="ent.wellbeing_short"
-                      label="短期的幸福度"
-                    ></v-text-field>
-                  </v-form>
+                  <v-text-field
+                    v-model="ent.wellbeing_short"
+                    label="短期的幸福度"
+                    :rules="[isNumber]"
+                  ></v-text-field>
                 </td>
                 <td>
-                  <v-form ref="form">
-                    <v-text-field
-                      v-model="ent.wellbeing_long"
-                      label="長期的幸福度"
-                    ></v-text-field>
-                  </v-form>
+                  <v-text-field
+                    v-model="ent.wellbeing_long"
+                    label="長期的幸福度"
+                    :rules="[isNumber]"
+                  ></v-text-field>
                 </td>
               </tr>
             </tbody>
@@ -82,7 +78,12 @@ import Action from "../interfaces/action";
 import actions from "../data/actions";
 import { loadScript } from "vue-plugin-load-script";
 
+import CBudgetDialog from './CBudgetDialog.vue'
+import CHolidayDialog from "./CHolidayDialog.vue";
+
 interface Data {
+  flagBudgetDialog: Boolean;
+  flagHolidayDialog: Boolean;
   actions: Array<Action>;
   budget: number;
   holiday: number;
@@ -91,6 +92,10 @@ interface Data {
 
 export default Vue.extend({
   name: "CTop",
+  components: {
+    CBudgetDialog,
+    CHolidayDialog
+  },
   props: {},
   mounted: function () {
     this.actions = actions;
@@ -98,6 +103,8 @@ export default Vue.extend({
   },
   data: function (): Data {
     return {
+      flagBudgetDialog: true,
+      flagHolidayDialog: false,
       actions: [],
       budget: 300000,
       holiday: 800,
@@ -105,6 +112,18 @@ export default Vue.extend({
     };
   },
   methods: {
+    openHolidayDialog: function () {
+      console.log("openHolidayDialog")
+      this.flagHolidayDialog = true
+    },
+    setBudget: function (val: number) {
+      console.log("setBudget")
+      this.budget = val
+    },
+    setHoliday: function (val: number) {
+      console.log("setHoliday")
+      this.holiday = val
+    },
     addRow: function () {
       let tailId: number = this.actions
         .map((ent): number => ent.id)
@@ -275,6 +294,10 @@ export default Vue.extend({
         }
       })
     },
+    isNumber: function(val) {
+      const pattern = /^[-]?([1-9]\d*|0)(\.\d+)?$/;
+      return pattern.test(val);
+    }
   },
 });
 </script>
