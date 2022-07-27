@@ -8,7 +8,7 @@
         <v-container>
           <v-row>
             <v-col>
-              <h2>悲観的結果</h2>
+              <h2>両得計画(悲観)</h2>
               <v-simple-table>
                 <template v-slot:default>
                   <thead>
@@ -27,7 +27,7 @@
               </v-simple-table>
             </v-col>
             <v-col>
-              <h2>楽観的結果</h2>
+              <h2>バランス計画(楽観)</h2>
               <v-simple-table>
                 <template v-slot:default>
                   <thead>
