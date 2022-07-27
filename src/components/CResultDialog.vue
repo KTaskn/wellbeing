@@ -14,13 +14,13 @@
                   <thead>
                     <tr>
                       <th class="text-left">行動</th>
-                      <th class="text-left">回数</th>
+                      <th class="text-left">時間</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr v-for="ent in negativeResult" :key="ent.id">
                       <td>{{ ent.label }}</td>
-                      <td>{{ ent.times }}</td>
+                      <td>{{ ent.time }} H</td>
                     </tr>
                   </tbody>
                 </template>
@@ -33,13 +33,13 @@
                   <thead>
                     <tr>
                       <th class="text-left">行動</th>
-                      <th class="text-left">回数</th>
+                      <th class="text-left">時間</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr v-for="ent in positiveResult" :key="ent.id">
                       <td>{{ ent.label }}</td>
-                      <td>{{ ent.times }}</td>
+                      <td>{{ ent.time }} H</td>
                     </tr>
                   </tbody>
                 </template>

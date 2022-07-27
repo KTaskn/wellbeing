@@ -1,6 +1,6 @@
 <template>
   <v-container class="grey lighten-5">
-    <h1>We should maximize wellbeing!</h1>
+    <h1>しあわせな毎日を送ろう</h1>
 
     <c-budget-dialog :pDialog="flagBudgetDialog" @budget="(val) => {
       setBudget(val)
@@ -310,12 +310,12 @@ export default Vue.extend({
       console.log(actions.map((ent) => ent.score))
       const variables = this.actions_obj(actions)
       const constraints = Object.assign({
-          required_cost: { max: this.budget, min: this.budget * 0.9 },
-          required_time: { equal: this.holiday },
+          required_cost: { max: Number(this.budget), min: Number(this.budget) * 0.9 },
+          required_time: { equal: Number(this.holiday)},
         }, // 時間の制限
         actions.reduce((result, ent) => {
           result["max_" + ent.id] = {
-            max: this.holiday / 10.0
+            max: this.holiday / 5.0
           }
           return result
         }, {})
@@ -340,7 +340,8 @@ export default Vue.extend({
           let k: number = key
           result[k] = {
               label: variables[k].label,
-              times: results[key]
+              times: results[key],
+              time: results[key] * variables[k].required_time
             }
         }
         return result
